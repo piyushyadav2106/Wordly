@@ -1,13 +1,21 @@
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 const words = require("./words.json");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, "..")));
 
-const PORT = 3000;
+app.get("/", (req, res) => {
+    res.sendFile(
+        path.join(__dirname, "..", "index.html")
+    );
+});
+
+const PORT = process.env.PORT || 3000;
 
 const battles = {};
 const soloGames = {};
@@ -866,6 +874,7 @@ app.post(
 
 app.listen(
     PORT,
+    "0.0.0.0",
     () => {
 
         console.log(
