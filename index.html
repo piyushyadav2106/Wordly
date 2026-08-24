@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>WORDLY</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+</head>
+
+
+<body>
+
+<div class="app">
+
+    <!-- ================= HEADER ================= -->
+
+    <header>
+
+        <h1>WORDLY</h1>
+
+        <p>
+            Guess it. Crack it. Repeat.
+        </p>
+
+    </header>
+
+
+    <!-- ================= HOME ================= -->
+
+    <div id="home">
+
+        <div class="mode-title">
+
+            <h2>
+                Choose your challenge
+            </h2>
+
+            <p>
+                Pick your word length
+            </p>
+
+        </div>
+
+
+        <div class="mode-buttons">
+
+            <button onclick="startGame(4)">
+                <span>4</span>
+                <small>LETTERS</small>
+            </button>
+
+            <button onclick="startGame(5)">
+                <span>5</span>
+                <small>LETTERS</small>
+            </button>
+
+            <button onclick="startGame(6)">
+                <span>6</span>
+                <small>LETTERS</small>
+            </button>
+
+            <button onclick="startGame(7)">
+                <span>7</span>
+                <small>LETTERS</small>
+            </button>
+
+        </div>
+
+
+        <button
+            class="battle-main daily-button"
+            onclick="startDaily()"
+        >
+
+            🌅 DAILY CHALLENGE
+
+        </button>
+
+
+        <button
+            class="battle-main"
+            onclick="openBattle()"
+        >
+
+            ⚔️ BATTLE
+
+        </button>
+
+
+        <button
+            class="secondary-main"
+            onclick="showStats()"
+        >
+
+            📊 MY STATS
+
+        </button>
+
+    </div>
+
+
+    <!-- ================= STATS ================= -->
+
+    <div
+        id="stats-page"
+        class="hidden"
+    >
+
+        <button
+            class="back-button"
+            onclick="goHome()"
+        >
+
+            ← Back
+
+        </button>
+
+
+        <div class="page-title">
+
+            <div class="big-icon">
+                📊
+            </div>
+
+            <h2>
+                YOUR STATS
+            </h2>
+
+        </div>
+
+
+        <div class="stats-grid">
+
+            <div class="stat-card">
+
+                <strong id="stat-games">
+                    0
+                </strong>
+
+                <span>
+                    Games
+                </span>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <strong id="stat-wins">
+                    0%
+                </strong>
+
+                <span>
+                    Win Rate
+                </span>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <strong id="stat-streak">
+                    0🔥
+                </strong>
+
+                <span>
+                    Streak
+                </span>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <strong id="stat-best">
+                    0🔥
+                </strong>
+
+                <span>
+                    Best
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="distribution-card">
+
+            <h3>
+                GUESS DISTRIBUTION
+            </h3>
+
+            <div id="distribution"></div>
+
+        </div>
+
+
+        <button
+            class="danger-button"
+            onclick="resetStats()"
+        >
+
+            RESET STATS
+
+        </button>
+
+    </div>
+
+
+    <!-- ================= DAILY ================= -->
+
+    <div
+        id="daily-page"
+        class="hidden"
+    >
+
+        <button
+            class="back-button"
+            onclick="goHome()"
+        >
+
+            ← Back
+
+        </button>
+
+
+        <div class="page-title">
+
+            <div class="big-icon">
+                🌅
+            </div>
+
+            <h2>
+                DAILY CHALLENGE
+            </h2>
+
+            <p id="daily-number">
+                DAILY
+            </p>
+
+        </div>
+
+
+        <div
+            id="daily-game-area"
+        >
+
+            <div id="daily-board"></div>
+
+            <div
+                id="daily-message"
+            ></div>
+
+            <div
+                id="daily-keyboard"
+            ></div>
+
+        </div>
+
+
+        <div
+            id="daily-result"
+            class="hidden"
+        >
+
+            <div class="result-icon">
+                🎉
+            </div>
+
+            <h2 id="daily-result-title">
+                DAILY COMPLETE!
+            </h2>
+
+            <p id="daily-result-text"></p>
+
+            <div
+                class="daily-share"
+                id="daily-share"
+            ></div>
+
+
+            <button
+                class="battle-main"
+                onclick="copyDailyResult()"
+            >
+
+                📋 SHARE RESULT
+
+            </button>
+
+
+            <p
+                id="daily-next"
+                class="muted"
+            ></p>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= SOLO GAME ================= -->
+
+    <div
+        id="game-area"
+        class="hidden"
+    >
+
+        <div class="game-top">
+
+            <button onclick="goHome()">
+                ← Back
+            </button>
+
+
+            <div id="game-info">
+
+                <span id="word-length">
+                    5 Letters
+                </span>
+
+                <span id="attempts">
+                    0 / 6
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div id="board"></div>
+
+
+        <div id="message"></div>
+
+
+        <div id="keyboard"></div>
+
+    </div>
+
+
+    <!-- ================= RESULT ================= -->
+
+    <div
+        id="result-screen"
+        class="hidden"
+    >
+
+        <div
+            id="result-icon"
+            class="result-icon"
+        >
+            🎉
+        </div>
+
+
+        <h2 id="result-title">
+            YOU GOT IT!
+        </h2>
+
+
+        <p id="result-word">
+            HOUSE
+        </p>
+
+
+        <p id="result-details">
+            Solved in 4 tries
+        </p>
+
+
+        <div class="result-stats">
+
+            <div>
+
+                <strong id="result-streak">
+                    0🔥
+                </strong>
+
+                <span>
+                    Streak
+                </span>
+
+            </div>
+
+
+            <div>
+
+                <strong id="result-best">
+                    0🔥
+                </strong>
+
+                <span>
+                    Best
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <button
+            class="battle-main"
+            onclick="playAgain()"
+        >
+
+            🔄 PLAY AGAIN
+
+        </button>
+
+
+        <button
+            class="secondary-main"
+            onclick="goHome()"
+        >
+
+            HOME
+
+        </button>
+
+    </div>
+
+
+    <!-- ================= BATTLE MENU ================= -->
+
+    <div
+        id="battle-menu"
+        class="hidden"
+    >
+
+        <button
+            class="back-button"
+            onclick="goHome()"
+        >
+
+            ← Back
+
+        </button>
+
+
+        <div class="battle-title">
+
+            <div class="battle-icon">
+                ⚔️
+            </div>
+
+            <h2>
+                WORDLY BATTLE
+            </h2>
+
+            <p>
+                Challenge a friend
+            </p>
+
+        </div>
+
+
+        <div class="battle-card">
+
+            <h3>
+                CREATE BATTLE
+            </h3>
+
+
+            <input
+                id="create-name"
+                placeholder="Your name"
+                maxlength="15"
+            >
+
+
+            <select id="create-length">
+
+                <option value="4">
+                    4 Letters
+                </option>
+
+                <option
+                    value="5"
+                    selected
+                >
+                    5 Letters
+                </option>
+
+                <option value="6">
+                    6 Letters
+                </option>
+
+                <option value="7">
+                    7 Letters
+                </option>
+
+            </select>
+
+
+            <button onclick="createBattle()">
+
+                CREATE BATTLE ⚔️
+
+            </button>
+
+        </div>
+
+
+        <div class="or">
+            OR
+        </div>
+
+
+        <div class="battle-card">
+
+            <h3>
+                JOIN BATTLE
+            </h3>
+
+
+            <input
+                id="join-name"
+                placeholder="Your name"
+                maxlength="15"
+            >
+
+
+            <input
+                id="join-code"
+                placeholder="ROOM CODE"
+                maxlength="5"
+            >
+
+
+            <button onclick="joinBattle()">
+
+                JOIN BATTLE
+
+            </button>
+
+        </div>
+
+
+        <div
+            id="battle-message"
+        ></div>
+
+    </div>
+
+
+    <!-- ================= WAITING ================= -->
+
+    <div
+        id="waiting-room"
+        class="hidden"
+    >
+
+        <button
+            class="back-button"
+            onclick="goHome()"
+        >
+
+            ← Leave
+
+        </button>
+
+
+        <div class="waiting-card">
+
+            <div class="battle-icon">
+                ⚔️
+            </div>
+
+
+            <h2>
+                YOUR BATTLE
+            </h2>
+
+
+            <p>
+                Share this room code
+            </p>
+
+
+            <div id="room-code">
+                -----
+            </div>
+
+
+            <button
+                class="copy-button"
+                onclick="copyRoomCode()"
+            >
+
+                📋 COPY CODE
+
+            </button>
+
+
+            <div class="waiting-loader">
+
+                <div class="loader-dot"></div>
+
+                <span id="waiting-text">
+                    Waiting for opponent...
+                </span>
+
+            </div>
+
+
+            <div id="players"></div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= BATTLE ARENA ================= -->
+
+    <div
+        id="battle-arena"
+        class="hidden"
+    >
+
+        <div class="arena-top">
+
+            <button
+                class="back-button"
+                onclick="leaveBattle()"
+            >
+
+                ← Leave
+
+            </button>
+
+
+            <div class="arena-room">
+
+                ROOM
+
+                <strong
+                    id="arena-room-code"
+                >
+                    -----
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <div class="battle-players">
+
+            <div class="player-card you">
+
+                <div class="player-name">
+
+                    <span>YOU</span>
+
+                    <strong
+                        id="arena-you-name"
+                    >
+                        Player
+                    </strong>
+
+                </div>
+
+
+                <div class="player-stats">
+
+                    <span id="you-guesses">
+                        0 guesses
+                    </span>
+
+                </div>
+
+
+                <div class="progress-track">
+
+                    <div
+                        id="you-progress"
+                        class="progress-fill"
+                    ></div>
+
+                </div>
+
+            </div>
+
+
+            <div class="vs">
+                ⚔️
+            </div>
+
+
+            <div class="player-card opponent">
+
+                <div class="player-name">
+
+                    <span>
+                        OPPONENT
+                    </span>
+
+                    <strong
+                        id="arena-opponent-name"
+                    >
+                        Waiting...
+                    </strong>
+
+                </div>
+
+
+                <div class="player-stats">
+
+                    <span
+                        id="opponent-guesses"
+                    >
+                        0 guesses
+                    </span>
+
+                </div>
+
+
+                <div class="progress-track">
+
+                    <div
+                        id="opponent-progress"
+                        class="progress-fill opponent-fill"
+                    ></div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div
+            class="battle-status"
+            id="battle-status"
+        >
+            BATTLE STARTING...
+        </div>
+
+
+        <div id="battle-board"></div>
+
+        <div id="battle-message"></div>
+
+        <div id="battle-keyboard"></div>
+
+    </div>
+
+</div>
+
+
+<script src="script.js?v=3"></script>
+
+</body>
+
+</html>
