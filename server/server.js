@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const words = require("./words.json");
+const hints = require("./hints.json");
 
 const app = express();
 
@@ -165,19 +166,16 @@ app.post(
 
 
         if (
-            ![4,5,6,7]
-                .includes(length)
-        ) {
+    ![4,5,6,7]
+        .includes(length)
+) {
 
-            return res.status(400)
-                .json({
+    return res.status(400)
+        .json({
+            error: "Invalid word length"
+        });
 
-                    error:
-                        "Invalid word length"
-
-                });
-
-        }
+}
 
 
         const secretWord =
@@ -186,15 +184,12 @@ app.post(
 
         if (!secretWord) {
 
-            return res.status(400)
-                .json({
+    return res.status(400)
+        .json({
+            error: "No words available"
+        });
 
-                    error:
-                        "No words available"
-
-                });
-
-        }
+}
 
 
         const gameId =
@@ -871,6 +866,94 @@ app.post(
 /* =====================================================
    SERVER
 ===================================================== */
+app.get("/words/:length", (req, res) => {
+    const length = req.params.length;
+
+    res.json(
+        words[length] || []
+    );
+});
+app.get("/hint/:gameId", (req, res) => {
+
+    const game =
+        soloGames[req.params.gameId];
+
+    if (!game) {
+
+        return res.status(404).json({
+            error: "Game not found"
+        });
+
+    }
+
+    // Maximum 3 hints per game
+    if (!game.hintsUsed) {
+        game.hintsUsed = 0;
+    }
+
+    if (game.hintsUsed >= 3) {
+
+        return res.status(400).json({
+            error: "No hints left"
+        });
+
+    }
+
+    // A hint consumes one attempt
+    if (game.guesses >= game.maxAttempts - 1) {
+
+        return res.status(400).json({
+            error: "Not enough attempts for a hint"
+        });
+
+    }
+
+    const word =
+        game.secretWord.toUpperCase();
+
+    let clue;
+
+    // Stronger hint with each use
+    if (game.hintsUsed === 0) {
+
+        clue =
+            `It starts with "${word[0]}" and ends with "${word[word.length - 1]}".`;
+
+    } else if (game.hintsUsed === 1) {
+
+        const vowels =
+            [...word].filter(letter =>
+                "AEIOU".includes(letter)
+            ).length;
+
+        clue =
+            `It has ${word.length} letters and ${vowels} vowel${vowels === 1 ? "" : "s"}.`;
+
+    } else {
+
+        const middleIndex =
+            Math.floor(word.length / 2);
+
+        clue =
+            `The letter "${word[middleIndex]}" appears near the middle of the word.`;
+
+    }
+
+    game.hintsUsed++;
+
+    // Consume one attempt
+    game.guesses++;
+
+    res.json({
+        clue,
+        hintsUsed: game.hintsUsed,
+        hintsRemaining: 3 - game.hintsUsed,
+        guesses: game.guesses,
+        maxAttempts: game.maxAttempts
+    });
+
+});
+
 
 app.listen(
     PORT,

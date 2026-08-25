@@ -1,0 +1,50 @@
+{
+  "GHOST": {
+    "clue": "You might encounter this in a haunted house.",
+    "letter": "G"
+  },
+  "MOUSE": {
+    "clue": "A small animal often associated with cheese.",
+    "letter": "M"
+  },
+  "HOUSE": {
+    "clue": "A place where people live.",
+    "letter": "H"
+  },
+  "WATER": {
+    "clue": "You drink it every day to stay hydrated.",
+    "letter": "W"
+  },
+  "PHONE": {
+    "clue": "You probably use this every day to call or message.",
+    "letter": "P"
+  },
+  "TABLE": {
+    "clue": "You might eat your dinner on this.",
+    "letter": "T"
+  },
+  "CHAIR": {
+    "clue": "You sit on this.",
+    "letter": "C"
+  },
+  "MONEY": {
+    "clue": "You use this to buy things.",
+    "letter": "M"
+  },
+  "BREAD": {
+    "clue": "A common food made from flour.",
+    "letter": "B"
+  },
+  "TRAIN": {
+    "clue": "A vehicle that travels on railway tracks.",
+    "letter": "T"
+  },
+  "APPLE": {
+    "clue": "A common fruit that can be red or green.",
+    "letter": "A"
+  },
+  "LIGHT": {
+    "clue": "It helps you see when it is dark.",
+    "letter": "L"
+  }
+}
