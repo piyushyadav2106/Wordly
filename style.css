@@ -1253,3 +1253,142 @@ header p {
     }
 
 }
+/* =========================================
+   MOBILE WORDLE KEYBOARD FIX
+========================================= */
+
+#keyboard,
+#daily-keyboard,
+#battle-keyboard {
+    width: 100%;
+    max-width: 520px;
+    margin: 16px auto 0;
+    padding: 0 2px;
+}
+
+.keyboard-row,
+.daily-key-row,
+.battle-key-row {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin-bottom: 6px;
+}
+
+.key,
+.daily-key,
+.battle-key {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 48px;
+    height: 48px;
+    padding: 0 4px;
+
+    border: 0;
+    border-radius: 6px;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    touch-action: manipulation;
+    user-select: none;
+}
+
+.key:nth-child(1),
+.daily-key:nth-child(1),
+.battle-key:nth-child(1) {
+    flex-grow: 1;
+}
+
+
+/* ENTER + BACKSPACE */
+
+.key:first-child,
+.daily-key:first-child,
+.battle-key:first-child {
+    flex-grow: 1.5;
+    max-width: 68px;
+}
+
+.key:last-child,
+.daily-key:last-child,
+.battle-key:last-child {
+    flex-grow: 1.5;
+    max-width: 68px;
+}
+
+
+/* SMALL PHONES */
+
+@media (max-width: 430px) {
+
+    #keyboard,
+    #daily-keyboard,
+    #battle-keyboard {
+        width: 100%;
+        padding: 0;
+    }
+
+    .keyboard-row,
+    .daily-key-row,
+    .battle-key-row {
+        gap: 3px;
+        margin-bottom: 5px;
+    }
+
+    .key,
+    .daily-key,
+    .battle-key {
+        height: 44px;
+        font-size: 12px;
+        border-radius: 5px;
+    }
+
+    .key:first-child,
+    .daily-key:first-child,
+    .battle-key:first-child {
+        max-width: 60px;
+    }
+
+    .key:last-child,
+    .daily-key:last-child,
+    .battle-key:last-child {
+        max-width: 60px;
+    }
+}
+
+
+/* VERY SMALL PHONES */
+
+@media (max-width: 360px) {
+
+    .keyboard-row,
+    .daily-key-row,
+    .battle-key-row {
+        gap: 2px;
+    }
+
+    .key,
+    .daily-key,
+    .battle-key {
+        height: 41px;
+        font-size: 11px;
+    }
+
+}
+.daily-key.key-green {
+    background: #4caf50 !important;
+    color: white !important;
+}
+
+.daily-key.key-yellow {
+    background: #d6a72c !important;
+    color: white !important;
+}
+
+.daily-key.key-gray {
+    background: #444 !important;
+    color: #999 !important;
+    opacity: .65;
+}

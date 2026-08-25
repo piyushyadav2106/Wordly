@@ -1,4 +1,8 @@
-const API = "";
+const API =
+    window.location.port === "5500"
+        ? "http://localhost:3000"
+        : "";
+
 
 /* =====================================================
    GLOBAL
@@ -6,21 +10,16 @@ const API = "";
 
 let wordLength = 5;
 let maxAttempts = 6;
+
 let currentRow = 0;
 let currentGuess = "";
 let soloGameId = "";
-
 let lastGameLength = 5;
 
 let keyboardStates = {};
 
-let battlePlayer = "";
-let battleWordLength = 5;
-let battleCurrentRow = 0;
-let battleCurrentGuess = "";
-let battleMaxAttempts = 6;
-let battlePolling = null;
-let waitingInterval = null;
+
+/* DAILY */
 
 let dailyWord = "";
 let dailyRow = 0;
@@ -28,8 +27,20 @@ let dailyGuess = "";
 let dailyFinished = false;
 
 
+/* BATTLE */
+
+let battlePlayer = "";
+let battleWordLength = 5;
+let battleCurrentRow = 0;
+let battleCurrentGuess = "";
+let battleMaxAttempts = 6;
+
+let battlePolling = null;
+let waitingInterval = null;
+
+
 /* =====================================================
-   STORAGE / STATS
+   HELPERS
 ===================================================== */
 
 function getStats() {
@@ -38,19 +49,13 @@ function getStats() {
         localStorage.getItem("wordlyStats");
 
     if (saved) {
-
         return JSON.parse(saved);
-
     }
 
     return {
-
         games: 0,
-
         wins: 0,
-
         streak: 0,
-
         bestStreak: 0,
 
         distribution: {
@@ -63,7 +68,6 @@ function getStats() {
             7: 0,
             8: 0
         }
-
     };
 }
 
@@ -78,16 +82,11 @@ function saveStats(stats) {
 }
 
 
-function recordGame(
-    won,
-    guesses
-) {
+function recordGame(won, guesses) {
 
-    const stats =
-        getStats();
+    const stats = getStats();
 
     stats.games++;
-
 
     if (won) {
 
@@ -99,23 +98,15 @@ function recordGame(
             stats.streak >
             stats.bestStreak
         ) {
-
             stats.bestStreak =
                 stats.streak;
-
         }
 
-
         if (
-            stats.distribution[
-                guesses
-            ] !== undefined
+            stats.distribution[guesses] !==
+            undefined
         ) {
-
-            stats.distribution[
-                guesses
-            ]++;
-
+            stats.distribution[guesses]++;
         }
 
     } else {
@@ -124,71 +115,68 @@ function recordGame(
 
     }
 
-
     saveStats(stats);
-
 }
 
 
 /* =====================================================
-   HOME
+   PAGE CONTROL
 ===================================================== */
 
 function showHome() {
 
-    document
-        .getElementById("home")
-        .classList.remove("hidden");
+    const pages = [
+        "home",
+        "game-area",
+        "result-screen",
+        "stats-page",
+        "daily-page",
+        "battle-menu",
+        "waiting-room",
+        "battle-arena"
+    ];
 
-    document
-        .getElementById("game-area")
-        .classList.add("hidden");
+    pages.forEach(id => {
 
-    document
-        .getElementById("result-screen")
-        .classList.add("hidden");
+        const element =
+            document.getElementById(id);
 
-    document
-        .getElementById("stats-page")
-        .classList.add("hidden");
+        if (!element) return;
 
-    document
-        .getElementById("daily-page")
-        .classList.add("hidden");
+        if (id === "home") {
+            element.classList.remove("hidden");
+        } else {
+            element.classList.add("hidden");
+        }
 
-    document
-        .getElementById("battle-menu")
-        .classList.add("hidden");
-
-    document
-        .getElementById("waiting-room")
-        .classList.add("hidden");
-
-    document
-        .getElementById("battle-arena")
-        .classList.add("hidden");
+    });
 
 }
 
 
+function goHome() {
+
+    clearInterval(battlePolling);
+    clearInterval(waitingInterval);
+
+    showHome();
+}
+
+
 /* =====================================================
-   SOLO START
+   SOLO GAME
 ===================================================== */
 
 async function startGame(length) {
 
-    wordLength =
-        Number(length);
+    wordLength = Number(length);
 
-    lastGameLength =
-        wordLength;
+    lastGameLength = wordLength;
 
     currentRow = 0;
-
     currentGuess = "";
 
     keyboardStates = {};
-
 
     try {
 
@@ -204,16 +192,13 @@ async function startGame(length) {
                     },
 
                     body: JSON.stringify({
-                        wordLength:
-                            wordLength
+                        wordLength
                     })
                 }
             );
 
-
         const data =
             await response.json();
-
 
         if (!response.ok) {
 
@@ -223,13 +208,10 @@ async function startGame(length) {
             );
 
             return;
-
         }
-
 
         soloGameId =
             data.gameId;
-
 
         maxAttempts =
             data.maxAttempts;
@@ -239,11 +221,9 @@ async function startGame(length) {
             .getElementById("home")
             .classList.add("hidden");
 
-
         document
             .getElementById("game-area")
             .classList.remove("hidden");
-
 
         document
             .getElementById("result-screen")
@@ -253,24 +233,19 @@ async function startGame(length) {
         document
             .getElementById("word-length")
             .textContent =
-            wordLength +
-            " Letters";
-
+            `${wordLength} Letters`;
 
         document
             .getElementById("attempts")
             .textContent =
-            "0 / " +
-            maxAttempts;
+            `0 / ${maxAttempts}`;
 
 
         showMessage("");
 
-
         createBoard();
 
         createKeyboard();
-
 
     } catch (error) {
 
@@ -281,7 +256,6 @@ async function startGame(length) {
         );
 
     }
-
 }
 
 
@@ -292,13 +266,9 @@ async function startGame(length) {
 function createBoard() {
 
     const board =
-        document.getElementById(
-            "board"
-        );
-
+        document.getElementById("board");
 
     board.innerHTML = "";
-
 
     for (
         let r = 0;
@@ -307,14 +277,9 @@ function createBoard() {
     ) {
 
         const row =
-            document.createElement(
-                "div"
-            );
+            document.createElement("div");
 
-
-        row.className =
-            "row";
-
+        row.className = "row";
 
         for (
             let c = 0;
@@ -323,45 +288,31 @@ function createBoard() {
         ) {
 
             const tile =
-                document.createElement(
-                    "div"
-                );
+                document.createElement("div");
 
-
-            tile.className =
-                "tile";
-
+            tile.className = "tile";
 
             tile.id =
                 `tile-${r}-${c}`;
 
-
             row.appendChild(tile);
-
         }
 
-
         board.appendChild(row);
-
     }
-
 }
 
 
 /* =====================================================
-   KEYBOARD
+   SOLO KEYBOARD
 ===================================================== */
 
 function createKeyboard() {
 
     const keyboard =
-        document.getElementById(
-            "keyboard"
-        );
-
+        document.getElementById("keyboard");
 
     keyboard.innerHTML = "";
-
 
     const rows = [
 
@@ -384,60 +335,36 @@ function createKeyboard() {
 
     ];
 
+    rows.forEach(letters => {
 
-    rows.forEach(
-        letters => {
+        const row =
+            document.createElement("div");
 
-            const row =
-                document.createElement(
-                    "div"
-                );
+        row.className =
+            "keyboard-row";
 
+        letters.forEach(letter => {
 
-            row.className =
-                "keyboard-row";
+            const button =
+                document.createElement("button");
 
+            button.className = "key";
 
-            letters.forEach(
-                letter => {
+            button.textContent = letter;
 
-                    const button =
-                        document.createElement(
-                            "button"
-                        );
+            button.onclick = () =>
+                handleKey(letter);
 
+            row.appendChild(button);
+        });
 
-                    button.className =
-                        "key";
-
-
-                    button.textContent =
-                        letter;
-
-
-                    button.onclick =
-                        () =>
-                            handleKey(letter);
-
-
-                    row.appendChild(
-                        button
-                    );
-
-                }
-            );
-
-
-            keyboard.appendChild(row);
-
-        }
-    );
-
+        keyboard.appendChild(row);
+    });
 }
 
 
 /* =====================================================
-   KEY
+   SOLO KEY
 ===================================================== */
 
 function handleKey(key) {
@@ -447,27 +374,20 @@ function handleKey(key) {
         submitGuess();
 
         return;
-
     }
-
 
     if (key === "⌫") {
 
         currentGuess =
-            currentGuess.slice(
-                0,
-                -1
-            );
-
+            currentGuess.slice(0, -1);
 
         updateBoard();
 
         return;
-
     }
 
-
     if (
+        /^[A-Z]$/.test(key) &&
         currentGuess.length <
         wordLength
     ) {
@@ -475,14 +395,12 @@ function handleKey(key) {
         currentGuess += key;
 
         updateBoard();
-
     }
-
 }
 
 
 /* =====================================================
-   UPDATE BOARD
+   SOLO BOARD UPDATE
 ===================================================== */
 
 function updateBoard() {
@@ -498,36 +416,25 @@ function updateBoard() {
                 `tile-${currentRow}-${c}`
             );
 
-
         if (!tile) continue;
 
-
         tile.textContent =
-            currentGuess[c] ||
-            "";
-
+            currentGuess[c] || "";
 
         if (currentGuess[c]) {
 
-            tile.classList.remove(
-                "pop"
-            );
+            tile.classList.remove("pop");
 
             void tile.offsetWidth;
 
-            tile.classList.add(
-                "pop"
-            );
-
+            tile.classList.add("pop");
         }
-
     }
-
 }
 
 
 /* =====================================================
-   SOLO GUESS
+   SOLO SUBMIT
 ===================================================== */
 
 async function submitGuess() {
@@ -539,9 +446,7 @@ async function submitGuess() {
         );
 
         return;
-
     }
-
 
     if (
         currentGuess.length !==
@@ -555,24 +460,18 @@ async function submitGuess() {
         );
 
         return;
-
     }
-
 
     const guess =
         currentGuess.toUpperCase();
-
 
     try {
 
         const response =
             await fetch(
                 API +
-                "/solo/" +
-                soloGameId +
-                "/guess",
+                `/solo/${soloGameId}/guess`,
                 {
-
                     method: "POST",
 
                     headers: {
@@ -581,16 +480,13 @@ async function submitGuess() {
                     },
 
                     body: JSON.stringify({
-                        guess: guess
+                        guess
                     })
-
                 }
             );
 
-
         const data =
             await response.json();
-
 
         if (!response.ok) {
 
@@ -602,77 +498,67 @@ async function submitGuess() {
             );
 
             return;
-
         }
 
 
         applyResult(
             currentRow,
-            resultSafe(
-                data.result
-            ),
+            data.result,
             guess
         );
 
 
         document
-            .getElementById(
-                "attempts"
-            )
+            .getElementById("attempts")
             .textContent =
-            data.guesses +
-            " / " +
-            data.maxAttempts;
+            `${data.guesses} / ${data.maxAttempts}`;
 
 
         if (data.correct) {
 
+            const solvedGuess =
+                data.guesses;
+
             currentGuess = "";
 
-            setTimeout(
-                () => {
+            setTimeout(() => {
 
-                    finishSoloGame(
-                        true,
-                        data.guesses,
-                        data.answer
-                    );
+                finishSoloGame(
+                    true,
+                    solvedGuess,
+                    data.answer
+                );
 
-                },
-                wordLength * 150 + 500
-            );
+            }, wordLength * 150 + 600);
 
             return;
-
         }
 
 
         if (data.gameOver) {
 
+            const totalGuesses =
+                data.guesses;
+
             currentGuess = "";
 
-            setTimeout(
-                () => {
+            setTimeout(() => {
 
-                    finishSoloGame(
-                        false,
-                        data.guesses,
-                        data.answer
-                    );
+                finishSoloGame(
+                    false,
+                    totalGuesses,
+                    data.answer
+                );
 
-                },
-                wordLength * 150 + 500
-            );
+            }, wordLength * 150 + 600);
 
             return;
-
         }
 
 
         currentRow++;
 
         currentGuess = "";
-
 
     } catch (error) {
 
@@ -681,33 +567,12 @@ async function submitGuess() {
         showMessage(
             "Server connection error!"
         );
-
     }
-
 }
 
 
 /* =====================================================
-   SAFE RESULT
-===================================================== */
-
-function resultSafe(result) {
-
-    if (
-        Array.isArray(result)
-    ) {
-
-        return result;
-
-    }
-
-    return [];
-
-}
-
-
-/* =====================================================
-   APPLY RESULT
+   SOLO RESULT
 ===================================================== */
 
 function applyResult(
@@ -716,88 +581,75 @@ function applyResult(
     guess
 ) {
 
-    result.forEach(
-        (state, i) => {
+    result.forEach((state, i) => {
 
-            const tile =
-                document.getElementById(
-                    `tile-${row}-${i}`
-                );
-
-
-            if (!tile) return;
-
-
-            setTimeout(
-                () => {
-
-                    tile.classList.add(
-                        "flip"
-                    );
-
-
-                    setTimeout(
-                        () => {
-
-                            if (
-                                state ===
-                                "green"
-                            ) {
-
-                                tile.style.background =
-                                    "#4caf50";
-
-                                tile.style.borderColor =
-                                    "#4caf50";
-
-                            }
-
-                            else if (
-                                state ===
-                                "yellow"
-                            ) {
-
-                                tile.style.background =
-                                    "#d6a72c";
-
-                                tile.style.borderColor =
-                                    "#d6a72c";
-
-                            }
-
-                            else {
-
-                                tile.style.background =
-                                    "#444";
-
-                                tile.style.borderColor =
-                                    "#444";
-
-                            }
-
-
-                            updateKeyboardLetter(
-                                guess[i],
-                                state
-                            );
-
-
-                        },
-                        250
-                    );
-
-                },
-                i * 130
+        const tile =
+            document.getElementById(
+                `tile-${row}-${i}`
             );
 
-        }
-    );
+        if (!tile) return;
 
+        setTimeout(() => {
+
+            tile.classList.add("flip");
+
+            setTimeout(() => {
+
+                setTileColor(
+                    tile,
+                    state
+                );
+
+                updateKeyboardLetter(
+                    guess[i],
+                    state
+                );
+
+            }, 250);
+
+        }, i * 130);
+
+    });
+}
+
+
+function setTileColor(
+    tile,
+    state
+) {
+
+    if (state === "green") {
+
+        tile.style.background =
+            "#4caf50";
+
+        tile.style.borderColor =
+            "#4caf50";
+
+    } else if (
+        state === "yellow"
+    ) {
+
+        tile.style.background =
+            "#d6a72c";
+
+        tile.style.borderColor =
+            "#d6a72c";
+
+    } else {
+
+        tile.style.background =
+            "#444";
+
+        tile.style.borderColor =
+            "#444";
+    }
 }
 
 
 /* =====================================================
-   SMART KEYBOARD
+   KEYBOARD COLORS
 ===================================================== */
 
 function updateKeyboardLetter(
@@ -807,154 +659,48 @@ function updateKeyboardLetter(
 
     if (!letter) return;
 
-
     const priority = {
-
         gray: 1,
-
         yellow: 2,
-
         green: 3
-
     };
 
-
     const oldState =
-        keyboardStates[
-            letter
-        ];
-
+        keyboardStates[letter];
 
     if (
         oldState &&
         priority[oldState] >=
         priority[newState]
     ) {
-
         return;
-
     }
 
-
-    keyboardStates[
-        letter
-    ] =
+    keyboardStates[letter] =
         newState;
 
 
     document
         .querySelectorAll(".key")
-        .forEach(
-            button => {
+        .forEach(button => {
 
-                if (
-                    button.textContent ===
-                    letter
-                ) {
+            if (
+                button.textContent ===
+                letter
+            ) {
 
-                    button.classList.remove(
-                        "key-green",
-                        "key-yellow",
-                        "key-gray"
-                    );
+                button.classList.remove(
+                    "key-green",
+                    "key-yellow",
+                    "key-gray"
+                );
 
-
-                    if (
-                        newState ===
-                        "green"
-                    ) {
-
-                        button.classList.add(
-                            "key-green"
-                        );
-
-                    }
-
-                    else if (
-                        newState ===
-                        "yellow"
-                    ) {
-
-                        button.classList.add(
-                            "key-yellow"
-                        );
-
-                    }
-
-                    else {
-
-                        button.classList.add(
-                            "key-gray"
-                        );
-
-                    }
-
-                }
-
+                button.classList.add(
+                    `key-${newState}`
+                );
             }
-        );
 
-}
-
-
-/* =====================================================
-   MESSAGE
-===================================================== */
-
-function showMessage(text) {
-
-    const message =
-        document.getElementById(
-            "message"
-        );
-
-
-    if (message) {
-
-        message.textContent =
-            text;
-
-    }
-
-}
-
-
-/* =====================================================
-   SHAKE
-===================================================== */
-
-function shakeBoard() {
-
-    const board =
-        document.getElementById(
-            "board"
-        );
-
-
-    board.classList.remove(
-        "shake"
-    );
-
-
-    void board.offsetWidth;
-
-
-    board.classList.add(
-        "shake"
-    );
-
-
-    setTimeout(
-        () => {
-
-            board.classList.remove(
-                "shake"
-            );
-
-        },
-        500
-    );
-
+        });
 }
 
 
@@ -973,72 +719,41 @@ function finishSoloGame(
         guesses
     );
 
-
     const stats =
         getStats();
 
 
     document
-        .getElementById(
-            "game-area"
-        )
-        .classList.add(
-            "hidden"
-        );
+        .getElementById("game-area")
+        .classList.add("hidden");
+
+    document
+        .getElementById("result-screen")
+        .classList.remove("hidden");
 
 
     document
-        .getElementById(
-            "result-screen"
-        )
-        .classList.remove(
-            "hidden"
-        );
-
-
-    const icon =
-        document.getElementById(
-            "result-icon"
-        );
-
-
-    const title =
-        document.getElementById(
-            "result-title"
-        );
-
-
-    if (won) {
-
-        icon.textContent =
-            "🎉";
-
-        title.textContent =
-            "YOU GOT IT!";
-
-    } else {
-
-        icon.textContent =
-            "😵";
-
-        title.textContent =
-            "NICE TRY!";
-
-    }
+        .getElementById("result-icon")
+        .textContent =
+        won ? "🎉" : "😵";
 
 
     document
-        .getElementById(
-            "result-word"
-        )
+        .getElementById("result-title")
+        .textContent =
+        won
+            ? "YOU GOT IT!"
+            : "NICE TRY!";
+
+
+    document
+        .getElementById("result-word")
         .textContent =
         answer || "-----";
 
 
     document
-        .getElementById(
-            "result-details"
-        )
+        .getElementById("result-details")
         .textContent =
         won
             ? `Solved in ${guesses} ${
@@ -1050,49 +765,67 @@ function finishSoloGame(
 
 
     document
-        .getElementById(
-            "result-streak"
-        )
+        .getElementById("result-streak")
         .textContent =
-        stats.streak +
-        "🔥";
+        `${stats.streak}🔥`;
 
 
     document
-        .getElementById(
-            "result-best"
-        )
+        .getElementById("result-best")
         .textContent =
-        stats.bestStreak +
-        "🔥";
-
+        `${stats.bestStreak}🔥`;
 }
 
-
-/* =====================================================
-   PLAY AGAIN
-===================================================== */
 
 function playAgain() {
 
     document
-        .getElementById(
-            "result-screen"
-        )
-        .classList.add(
-            "hidden"
-        );
+        .getElementById("result-screen")
+        .classList.add("hidden");
 
-
-    startGame(
-        lastGameLength
-    );
-
+    startGame(lastGameLength);
 }
 
 
 /* =====================================================
-   STATS PAGE
+   MESSAGE
+===================================================== */
+
+function showMessage(text) {
+
+    const element =
+        document.getElementById("message");
+
+    if (element) {
+
+        element.textContent = text;
+    }
+}
+
+
+function shakeBoard() {
+
+    const board =
+        document.getElementById("board");
+
+    if (!board) return;
+
+    board.classList.remove("shake");
+
+    void board.offsetWidth;
+
+    board.classList.add("shake");
+
+    setTimeout(() => {
+
+        board.classList.remove("shake");
+
+    }, 500);
+}
+
+
+/* =====================================================
+   STATS
 ===================================================== */
 
 function showStats() {
@@ -1100,29 +833,17 @@ function showStats() {
     const stats =
         getStats();
 
+    document
+        .getElementById("home")
+        .classList.add("hidden");
 
     document
-        .getElementById(
-            "home"
-        )
-        .classList.add(
-            "hidden"
-        );
-
-
-    document
-        .getElementById(
-            "stats-page"
-        )
-        .classList.remove(
-            "hidden"
-        );
+        .getElementById("stats-page")
+        .classList.remove("hidden");
 
 
     document
-        .getElementById(
-            "stat-games"
-        )
+        .getElementById("stat-games")
         .textContent =
         stats.games;
 
@@ -1139,35 +860,26 @@ function showStats() {
 
 
     document
-        .getElementById(
-            "stat-wins"
-        )
+        .getElementById("stat-wins")
         .textContent =
-        winRate + "%";
+        `${winRate}%`;
 
 
     document
-        .getElementById(
-            "stat-streak"
-        )
+        .getElementById("stat-streak")
         .textContent =
-        stats.streak +
-        "🔥";
+        `${stats.streak}🔥`;
 
 
     document
-        .getElementById(
-            "stat-best"
-        )
+        .getElementById("stat-best")
         .textContent =
-        stats.bestStreak +
-        "🔥";
+        `${stats.bestStreak}🔥`;
 
 
     renderDistribution(
         stats.distribution
     );
-
 }
 
 
@@ -1180,141 +892,138 @@ function renderDistribution(
             "distribution"
         );
 
-
     container.innerHTML = "";
-
 
     let max = 1;
 
-
     Object.values(
         distribution
-    ).forEach(
-        value => {
+    ).forEach(value => {
 
-            if (value > max) {
-
-                max = value;
-
-            }
-
+        if (value > max) {
+            max = value;
         }
-    );
+
+    });
 
 
     Object.keys(
         distribution
-    ).forEach(
-        number => {
+    ).forEach(number => {
 
-            const value =
-                distribution[
-                    number
-                ];
+        const value =
+            distribution[number];
 
+        const row =
+            document.createElement("div");
 
-            const row =
-                document.createElement(
-                    "div"
-                );
+        row.className =
+            "dist-row";
 
 
-            row.className =
-                "dist-row";
+        const label =
+            document.createElement("span");
+
+        label.className =
+            "dist-number";
+
+        label.textContent =
+            number;
 
 
-            const label =
-                document.createElement(
-                    "span"
-                );
+        const bar =
+            document.createElement("div");
+
+        bar.className =
+            "dist-bar";
 
 
-            label.className =
-                "dist-number";
+        bar.style.width =
+            value === 0
+                ? "25px"
+                : Math.max(
+                    25,
+                    (
+                        value /
+                        max
+                    ) * 100
+                ) + "%";
 
 
-            label.textContent =
-                number;
+        bar.textContent = value;
 
 
-            const bar =
-                document.createElement(
-                    "div"
-                );
+        row.appendChild(label);
 
+        row.appendChild(bar);
 
-            bar.className =
-                "dist-bar";
+        container.appendChild(row);
 
-
-            const width =
-                value === 0
-                    ? 25
-                    : Math.max(
-                        25,
-                        (
-                            value /
-                            max
-                        ) * 100
-                    );
-
-
-            bar.style.width =
-                width + "%";
-
-
-            bar.textContent =
-                value;
-
-
-            row.appendChild(
-                label
-            );
-
-
-            row.appendChild(
-                bar
-            );
-
-
-            container.appendChild(
-                row
-            );
-
-        }
-    );
-
+    });
 }
 
 
 function resetStats() {
 
-    const confirmReset =
-        confirm(
+    if (
+        !confirm(
             "Reset all Wordly stats?"
-        );
-
-
-    if (!confirmReset) {
+        )
+    ) {
         return;
     }
-
 
     localStorage.removeItem(
         "wordlyStats"
     );
 
-
     showStats();
-
 }
 
 
 /* =====================================================
-   DAILY CHALLENGE
+   DAILY
 ===================================================== */
 
 async function startDaily() {
+
+    const today =
+        getTodayKey();
+
+
+    const played =
+        localStorage.getItem(
+            "wordlyDailyPlayed"
+        );
+
+
+    document
+        .getElementById("home")
+        .classList.add("hidden");
+
+
+    document
+        .getElementById("daily-page")
+        .classList.remove("hidden");
+
+
+    document
+        .getElementById("daily-number")
+        .textContent =
+        `DAILY • ${getDailyNumber()}`;
+
+
+    /*
+     * Already played today
+     */
+
+    if (played === today) {
+
+        showDailyAlreadyPlayed();
+
+        return;
+    }
+
 
     dailyRow = 0;
 
@@ -1337,36 +1046,16 @@ async function startDaily() {
             await response.json();
 
 
+        if (!response.ok) {
+
+            throw new Error(
+                "Daily unavailable"
+            );
+        }
+
+
         dailyWord =
-            data.dailyWord
-                .toUpperCase();
-
-
-        document
-            .getElementById(
-                "home"
-            )
-            .classList.add(
-                "hidden"
-            );
-
-
-        document
-            .getElementById(
-                "daily-page"
-            )
-            .classList.remove(
-                "hidden"
-            );
-
-
-        document
-            .getElementById(
-                "daily-result"
-            )
-            .classList.add(
-                "hidden"
-            );
+            data.dailyWord.toUpperCase();
 
 
         document
@@ -1380,11 +1069,11 @@ async function startDaily() {
 
         document
             .getElementById(
-                "daily-number"
+                "daily-result"
             )
-            .textContent =
-            "DAILY • " +
-            getDailyNumber();
+            .classList.add(
+                "hidden"
+            );
 
 
         createDailyBoard();
@@ -1401,46 +1090,74 @@ async function startDaily() {
         alert(
             "Daily challenge unavailable!"
         );
-
     }
-
 }
 
 
-function getDailyNumber() {
-
-    const start =
-        new Date(
-            Date.UTC(
-                2026,
-                0,
-                1
-            )
-        );
-
+function getTodayKey() {
 
     const now =
         new Date();
 
-
-    const today =
-        Date.UTC(
-            now.getUTCFullYear(),
-            now.getUTCMonth(),
-            now.getUTCDate()
-        );
-
-
-    return Math.floor(
-        (
-            today -
-            start.getTime()
-        ) /
-        86400000
-    ) + 1;
-
+    return [
+        now.getFullYear(),
+        String(
+            now.getMonth() + 1
+        ).padStart(2, "0"),
+        String(
+            now.getDate()
+        ).padStart(2, "0")
+    ].join("-");
 }
 
+
+function showDailyAlreadyPlayed() {
+
+    document
+        .getElementById(
+            "daily-game-area"
+        )
+        .classList.add("hidden");
+
+
+    document
+        .getElementById(
+            "daily-result"
+        )
+        .classList.remove("hidden");
+
+
+    document
+        .getElementById(
+            "daily-result-title"
+        )
+        .textContent =
+        "TODAY'S CHALLENGE COMPLETE";
+
+
+    document
+        .getElementById(
+            "daily-result-text"
+        )
+        .textContent =
+        "You've already played today's challenge. Come back tomorrow!";
+
+
+    document
+        .getElementById(
+            "daily-share"
+        )
+        .textContent =
+        "✓ PLAYED TODAY";
+
+
+    updateDailyCountdown();
+}
+
+
+/* =====================================================
+   DAILY BOARD
+===================================================== */
 
 function createDailyBoard() {
 
@@ -1448,7 +1165,6 @@ function createDailyBoard() {
         document.getElementById(
             "daily-board"
         );
-
 
     board.innerHTML = "";
 
@@ -1460,10 +1176,7 @@ function createDailyBoard() {
     ) {
 
         const row =
-            document.createElement(
-                "div"
-            );
-
+            document.createElement("div");
 
         row.className =
             "daily-row";
@@ -1476,34 +1189,26 @@ function createDailyBoard() {
         ) {
 
             const tile =
-                document.createElement(
-                    "div"
-                );
-
+                document.createElement("div");
 
             tile.className =
                 "daily-tile";
 
-
             tile.id =
                 `daily-tile-${r}-${c}`;
 
-
-            row.appendChild(
-                tile
-            );
-
+            row.appendChild(tile);
         }
 
 
-        board.appendChild(
-            row
-        );
-
+        board.appendChild(row);
     }
-
 }
 
+
+/* =====================================================
+   DAILY KEYBOARD
+===================================================== */
 
 function createDailyKeyboard() {
 
@@ -1511,7 +1216,6 @@ function createDailyKeyboard() {
         document.getElementById(
             "daily-keyboard"
         );
-
 
     keyboard.innerHTML = "";
 
@@ -1538,60 +1242,42 @@ function createDailyKeyboard() {
     ];
 
 
-    rows.forEach(
-        letters => {
+    rows.forEach(letters => {
 
-            const row =
-                document.createElement(
-                    "div"
-                );
+        const row =
+            document.createElement("div");
 
-
-            row.className =
-                "daily-key-row";
+        row.className =
+            "daily-key-row";
 
 
-            letters.forEach(
-                letter => {
+        letters.forEach(letter => {
 
-                    const button =
-                        document.createElement(
-                            "button"
-                        );
+            const button =
+                document.createElement("button");
 
+            button.className =
+                "daily-key";
 
-                    button.className =
-                        "daily-key";
+            button.textContent =
+                letter;
 
+            button.onclick =
+                () =>
+                    handleDailyKey(letter);
 
-                    button.textContent =
-                        letter;
-
-
-                    button.onclick =
-                        () =>
-                            handleDailyKey(
-                                letter
-                            );
+            row.appendChild(button);
+        });
 
 
-                    row.appendChild(
-                        button
-                    );
-
-                }
-            );
-
-
-            keyboard.appendChild(
-                row
-            );
-
-        }
-    );
-
+        keyboard.appendChild(row);
+    });
 }
 
+
+/* =====================================================
+   DAILY KEY
+===================================================== */
 
 function handleDailyKey(key) {
 
@@ -1605,38 +1291,35 @@ function handleDailyKey(key) {
         submitDailyGuess();
 
         return;
-
     }
 
 
     if (key === "⌫") {
 
         dailyGuess =
-            dailyGuess.slice(
-                0,
-                -1
-            );
-
+            dailyGuess.slice(0, -1);
 
         updateDailyBoard();
 
         return;
-
     }
 
 
     if (
+        /^[A-Z]$/.test(key) &&
         dailyGuess.length < 5
     ) {
 
         dailyGuess += key;
 
         updateDailyBoard();
-
     }
-
 }
 
+
+/* =====================================================
+   DAILY BOARD UPDATE
+===================================================== */
 
 function updateDailyBoard() {
 
@@ -1651,35 +1334,46 @@ function updateDailyBoard() {
                 `daily-tile-${dailyRow}-${c}`
             );
 
+        if (!tile) continue;
 
-        if (tile) {
+        tile.textContent =
+            dailyGuess[c] || "";
 
-            tile.textContent =
-                dailyGuess[c] ||
-                "";
 
+        if (dailyGuess[c]) {
+
+            tile.classList.remove("pop");
+
+            void tile.offsetWidth;
+
+            tile.classList.add("pop");
         }
-
     }
-
 }
 
 
+/* =====================================================
+   DAILY SUBMIT
+===================================================== */
+
 async function submitDailyGuess() {
+
+    if (dailyFinished) {
+        return;
+    }
+
 
     if (
         dailyGuess.length !== 5
     ) {
 
-        document
-            .getElementById(
-                "daily-message"
-            )
-            .textContent =
-            "Not enough letters!";
+        shakeDailyBoard();
+
+        showDailyMessage(
+            "Not enough letters!"
+        );
 
         return;
-
     }
 
 
@@ -1690,9 +1384,7 @@ async function submitDailyGuess() {
     try {
 
         /*
-         * Validate through server's
-         * normal dictionary route
-         * using a temporary solo game.
+         * Validate guess using server.
          */
 
         const start =
@@ -1713,40 +1405,22 @@ async function submitDailyGuess() {
             );
 
 
-        /*
-         * We don't use the random
-         * secret from that game.
-         *
-         * Daily result is calculated
-         * locally against the daily
-         * word after dictionary check.
-         */
-
         if (!start.ok) {
 
             throw new Error(
                 "Dictionary unavailable"
             );
-
         }
 
-
-        /*
-         * Basic common-word validation
-         * is handled by the server through
-         * a temporary check below.
-         */
 
         const game =
             await start.json();
 
 
-        const response =
+        const validationResponse =
             await fetch(
                 API +
-                "/solo/" +
-                game.gameId +
-                "/guess",
+                `/solo/${game.gameId}/guess`,
                 {
                     method: "POST",
 
@@ -1756,40 +1430,33 @@ async function submitDailyGuess() {
                     },
 
                     body: JSON.stringify({
-                        guess: guess
+                        guess
                     })
                 }
             );
 
 
         const validation =
-            await response.json();
+            await validationResponse.json();
 
-
-        /*
-         * If server says invalid,
-         * reject the daily guess.
-         */
 
         if (
-            !response.ok &&
-            validation.invalid
+            !validationResponse.ok
         ) {
 
-            document
-                .getElementById(
-                    "daily-message"
-                )
-                .textContent =
-                "Not a word! ❌";
+            shakeDailyBoard();
+
+            showDailyMessage(
+                validation.error ||
+                "Not a word! ❌"
+            );
 
             return;
-
         }
 
 
         /*
-         * Daily Wordle evaluation.
+         * Evaluate against DAILY word.
          */
 
         const result =
@@ -1806,29 +1473,31 @@ async function submitDailyGuess() {
         );
 
 
+        /*
+         * WIN
+         */
+
         if (
             guess === dailyWord
         ) {
 
-            dailyFinished =
-                true;
+            dailyFinished = true;
 
 
-            setTimeout(
-                () => {
+            lockDaily();
 
-                    finishDaily(
-                        true,
-                        dailyRow + 1
-                    );
 
-                },
-                1200
-            );
+            setTimeout(() => {
+
+                finishDaily(
+                    true,
+                    dailyRow + 1
+                );
+
+            }, 1500);
 
 
             return;
-
         }
 
 
@@ -1837,43 +1506,56 @@ async function submitDailyGuess() {
         dailyGuess = "";
 
 
+        /*
+         * LOSS
+         */
+
         if (
             dailyRow >= 6
         ) {
 
-            dailyFinished =
-                true;
+            dailyFinished = true;
+
+            lockDaily();
 
 
-            setTimeout(
-                () => {
+            setTimeout(() => {
 
-                    finishDaily(
-                        false,
-                        6
-                    );
+                finishDaily(
+                    false,
+                    6
+                );
 
-                },
-                1200
-            );
-
+            }, 1500);
         }
-
-    } catch (error) {
+    }
+    catch (error) {
 
         console.error(error);
 
-        document
-            .getElementById(
-                "daily-message"
-            )
-            .textContent =
-            "Connection error!";
-
+        showDailyMessage(
+            "Connection error!"
+        );
     }
-
 }
 
+
+/* =====================================================
+   DAILY LOCK
+===================================================== */
+
+function lockDaily() {
+
+    localStorage.setItem(
+        "wordlyDailyPlayed",
+        getTodayKey()
+    );
+}
+
+
+/* =====================================================
+   DAILY WORDLE LOGIC
+===================================================== */
 
 function evaluateLocal(
     secret,
@@ -1881,15 +1563,12 @@ function evaluateLocal(
 ) {
 
     const result =
-        Array(
-            secret.length
-        ).fill("gray");
-
+        Array(secret.length)
+            .fill("gray");
 
     const used =
-        Array(
-            secret.length
-        ).fill(false);
+        Array(secret.length)
+            .fill(false);
 
 
     for (
@@ -1899,18 +1578,13 @@ function evaluateLocal(
     ) {
 
         if (
-            guess[i] ===
-            secret[i]
+            guess[i] === secret[i]
         ) {
 
-            result[i] =
-                "green";
+            result[i] = "green";
 
-            used[i] =
-                true;
-
+            used[i] = true;
         }
-
     }
 
 
@@ -1921,8 +1595,7 @@ function evaluateLocal(
     ) {
 
         if (
-            result[i] ===
-            "green"
+            result[i] === "green"
         ) {
             continue;
         }
@@ -1936,29 +1609,26 @@ function evaluateLocal(
 
             if (
                 !used[j] &&
-                guess[i] ===
-                secret[j]
+                guess[i] === secret[j]
             ) {
 
-                result[i] =
-                    "yellow";
+                result[i] = "yellow";
 
-                used[j] =
-                    true;
+                used[j] = true;
 
                 break;
-
             }
-
         }
-
     }
 
 
     return result;
-
 }
 
+
+/* =====================================================
+   DAILY RESULT ANIMATION
+===================================================== */
 
 function applyDailyResult(
     row,
@@ -1966,88 +1636,192 @@ function applyDailyResult(
     guess
 ) {
 
-    result.forEach(
-        (state, i) => {
+    result.forEach((state, i) => {
 
-            const tile =
-                document.getElementById(
-                    `daily-tile-${row}-${i}`
+        const tile =
+            document.getElementById(
+                `daily-tile-${row}-${i}`
+            );
+
+        if (!tile) return;
+
+
+        setTimeout(() => {
+
+            tile.classList.add("flip");
+
+
+            setTimeout(() => {
+
+                setTileColor(
+                    tile,
+                    state
                 );
 
 
-            if (!tile) return;
+                updateDailyKeyboard(
+                    guess[i],
+                    state
+                );
 
+            }, 250);
 
-            setTimeout(
-                () => {
+        }, i * 130);
 
-                    if (
-                        state ===
-                        "green"
-                    ) {
-
-                        tile.style.background =
-                            "#4caf50";
-
-                        tile.style.borderColor =
-                            "#4caf50";
-
-                    }
-
-                    else if (
-                        state ===
-                        "yellow"
-                    ) {
-
-                        tile.style.background =
-                            "#d6a72c";
-
-                        tile.style.borderColor =
-                            "#d6a72c";
-
-                    }
-
-                    else {
-
-                        tile.style.background =
-                            "#444";
-
-                        tile.style.borderColor =
-                            "#444";
-
-                    }
-
-                },
-                i * 120
-            );
-
-        }
-    );
-
+    });
 }
 
+
+/* =====================================================
+   DAILY KEYBOARD COLORS
+===================================================== */
+
+function updateDailyKeyboard(
+    letter,
+    state
+) {
+
+    if (!letter) return;
+
+
+    const priority = {
+        gray: 1,
+        yellow: 2,
+        green: 3
+    };
+
+
+    const oldState =
+        keyboardStates[letter];
+
+
+    if (
+        oldState &&
+        priority[oldState] >=
+        priority[state]
+    ) {
+
+        return;
+    }
+
+
+    keyboardStates[letter] =
+        state;
+
+
+    document
+        .querySelectorAll(
+            ".daily-key"
+        )
+        .forEach(button => {
+
+            if (
+                button.textContent ===
+                letter
+            ) {
+
+                button.classList.remove(
+                    "key-green",
+                    "key-yellow",
+                    "key-gray"
+                );
+
+
+                button.classList.add(
+                    `key-${state}`
+                );
+            }
+        });
+}
+
+
+/* =====================================================
+   DAILY SHAKE
+===================================================== */
+
+function shakeDailyBoard() {
+
+    const board =
+        document.getElementById(
+            "daily-board"
+        );
+
+    if (!board) return;
+
+
+    board.classList.remove(
+        "shake"
+    );
+
+    void board.offsetWidth;
+
+    board.classList.add(
+        "shake"
+    );
+
+
+    setTimeout(() => {
+
+        board.classList.remove(
+            "shake"
+        );
+
+    }, 500);
+}
+
+
+/* =====================================================
+   DAILY MESSAGE
+===================================================== */
+
+function showDailyMessage(
+    text
+) {
+
+    const message =
+        document.getElementById(
+            "daily-message"
+        );
+
+    if (!message) return;
+
+
+    message.textContent =
+        text;
+
+
+    setTimeout(() => {
+
+        message.textContent = "";
+
+    }, 2000);
+}
+
+
+/* =====================================================
+   DAILY FINISH
+===================================================== */
 
 function finishDaily(
     won,
     guesses
 ) {
 
+    lockDaily();
+
+
     document
         .getElementById(
             "daily-game-area"
         )
-        .classList.add(
-            "hidden"
-        );
+        .classList.add("hidden");
 
 
     document
         .getElementById(
             "daily-result"
         )
-        .classList.remove(
-            "hidden"
-        );
+        .classList.remove("hidden");
 
 
     document
@@ -2076,8 +1850,13 @@ function finishDaily(
 
     buildDailyShare();
 
+    updateDailyCountdown();
 }
 
+
+/* =====================================================
+   DAILY SHARE
+===================================================== */
 
 function buildDailyShare() {
 
@@ -2114,46 +1893,30 @@ function buildDailyShare() {
 
 
             if (
-                bg.includes(
-                    "76, 175, 80"
-                ) ||
-                bg ===
-                    "rgb(76, 175, 80)"
+                bg.includes("rgb(76, 175, 80)")
             ) {
 
                 line += "🟩";
 
-            }
-
-            else if (
+            } else if (
                 bg.includes(
-                    "214, 167, 44"
-                ) ||
-                bg ===
                     "rgb(214, 167, 44)"
+                )
             ) {
 
                 line += "🟨";
 
-            }
-
-            else if (
-                bg
-            ) {
+            } else {
 
                 line += "⬛";
-
             }
-
         }
 
 
         if (line.length === 5) {
 
             rows.push(line);
-
         }
-
     }
 
 
@@ -2163,17 +1926,13 @@ function buildDailyShare() {
         )
         .textContent =
         rows.join("\n");
-
-
 }
 
 
 function copyDailyResult() {
 
     const share =
-        `Wordly Daily #${
-            getDailyNumber()
-        }\n\n` +
+        `Wordly Daily #${getDailyNumber()}\n\n` +
         document
             .getElementById(
                 "daily-share"
@@ -2182,9 +1941,7 @@ function copyDailyResult() {
 
 
     navigator.clipboard
-        .writeText(
-            share
-        );
+        .writeText(share);
 
 
     document
@@ -2193,9 +1950,58 @@ function copyDailyResult() {
         )
         .textContent =
         "Copied! 📋";
-
 }
 
+
+/* =====================================================
+   DAILY NUMBER
+===================================================== */
+
+function getDailyNumber() {
+
+    const start =
+        new Date(
+            2026,
+            0,
+            1
+        );
+
+
+    const now =
+        new Date();
+
+
+    const today =
+        new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate()
+        );
+
+
+    const first =
+        new Date(
+            start.getFullYear(),
+            start.getMonth(),
+            start.getDate()
+        );
+
+
+    return (
+        Math.floor(
+            (
+                today -
+                first
+            ) /
+            86400000
+        ) + 1
+    );
+}
+
+
+/* =====================================================
+   DAILY COUNTDOWN
+===================================================== */
 
 function updateDailyCountdown() {
 
@@ -2204,9 +2010,7 @@ function updateDailyCountdown() {
 
 
     const tomorrow =
-        new Date(
-            now
-        );
+        new Date(now);
 
 
     tomorrow.setHours(
@@ -2218,11 +2022,14 @@ function updateDailyCountdown() {
 
 
     const seconds =
-        Math.floor(
-            (
-                tomorrow -
-                now
-            ) / 1000
+        Math.max(
+            0,
+            Math.floor(
+                (
+                    tomorrow -
+                    now
+                ) / 1000
+            )
         );
 
 
@@ -2235,13 +2042,12 @@ function updateDailyCountdown() {
     const minutes =
         Math.floor(
             (
-                seconds %
-                3600
+                seconds % 3600
             ) / 60
         );
 
 
-    const secondsLeft =
+    const secs =
         seconds % 60;
 
 
@@ -2251,14 +2057,10 @@ function updateDailyCountdown() {
         );
 
 
-    if (
-        element &&
-        !dailyFinished
-    ) {
+    if (element) {
 
         element.textContent =
-            `Next challenge in ${hours}h ${minutes}m ${secondsLeft}s`;
-
+            `Next challenge in ${hours}h ${minutes}m ${secs}s`;
     }
 
 
@@ -2266,7 +2068,6 @@ function updateDailyCountdown() {
         updateDailyCountdown,
         1000
     );
-
 }
 
 
@@ -2277,22 +2078,12 @@ function updateDailyCountdown() {
 function openBattle() {
 
     document
-        .getElementById(
-            "home"
-        )
-        .classList.add(
-            "hidden"
-        );
-
+        .getElementById("home")
+        .classList.add("hidden");
 
     document
-        .getElementById(
-            "battle-menu"
-        )
-        .classList.remove(
-            "hidden"
-        );
-
+        .getElementById("battle-menu")
+        .classList.remove("hidden");
 }
 
 
@@ -2303,14 +2094,10 @@ function showBattleMessage(text) {
             "battle-message"
         );
 
-
     if (element) {
 
-        element.textContent =
-            text;
-
+        element.textContent = text;
     }
-
 }
 
 
@@ -2346,7 +2133,6 @@ async function createBattle() {
         );
 
         return;
-
     }
 
 
@@ -2357,7 +2143,6 @@ async function createBattle() {
                 API +
                 "/create-battle",
                 {
-
                     method: "POST",
 
                     headers: {
@@ -2366,15 +2151,10 @@ async function createBattle() {
                     },
 
                     body: JSON.stringify({
-
-                        playerName:
-                            playerName,
-
+                        playerName,
                         wordLength:
                             length
-
                     })
-
                 }
             );
 
@@ -2390,13 +2170,11 @@ async function createBattle() {
             );
 
             return;
-
         }
 
 
         window.currentRoom =
             data.roomCode;
-
 
         window.currentPlayer =
             playerName;
@@ -2406,18 +2184,14 @@ async function createBattle() {
             .getElementById(
                 "battle-menu"
             )
-            .classList.add(
-                "hidden"
-            );
+            .classList.add("hidden");
 
 
         document
             .getElementById(
                 "waiting-room"
             )
-            .classList.remove(
-                "hidden"
-            );
+            .classList.remove("hidden");
 
 
         document
@@ -2430,17 +2204,15 @@ async function createBattle() {
 
         startWaiting();
 
-
-    } catch (error) {
+    }
+    catch (error) {
 
         console.error(error);
 
         showBattleMessage(
             "Cannot connect to server!"
         );
-
     }
-
 }
 
 
@@ -2479,7 +2251,6 @@ async function joinBattle() {
         );
 
         return;
-
     }
 
 
@@ -2490,7 +2261,6 @@ async function joinBattle() {
                 API +
                 "/join-battle",
                 {
-
                     method: "POST",
 
                     headers: {
@@ -2499,15 +2269,9 @@ async function joinBattle() {
                     },
 
                     body: JSON.stringify({
-
-                        playerName:
-                            playerName,
-
-                        roomCode:
-                            roomCode
-
+                        playerName,
+                        roomCode
                     })
-
                 }
             );
 
@@ -2523,13 +2287,11 @@ async function joinBattle() {
             );
 
             return;
-
         }
 
 
         window.currentRoom =
             roomCode;
-
 
         window.currentPlayer =
             playerName;
@@ -2539,40 +2301,34 @@ async function joinBattle() {
             .getElementById(
                 "battle-menu"
             )
-            .classList.add(
-                "hidden"
-            );
+            .classList.add("hidden");
 
 
         document
             .getElementById(
                 "waiting-room"
             )
-            .classList.add(
-                "hidden"
-            );
+            .classList.add("hidden");
 
 
         startBattleGame(
             data.battle
         );
 
-
-    } catch (error) {
+    }
+    catch (error) {
 
         console.error(error);
 
         showBattleMessage(
             "Cannot connect to server!"
         );
-
     }
-
 }
 
 
 /* =====================================================
-   WAITING
+   BATTLE WAITING
 ===================================================== */
 
 function startWaiting() {
@@ -2587,15 +2343,12 @@ function startWaiting() {
             checkBattle,
             1000
         );
-
 }
 
 
 async function checkBattle() {
 
-    if (
-        !window.currentRoom
-    ) {
+    if (!window.currentRoom) {
         return;
     }
 
@@ -2614,9 +2367,7 @@ async function checkBattle() {
             await response.json();
 
 
-        if (
-            !battle.player2
-        ) {
+        if (!battle.player2) {
             return;
         }
 
@@ -2644,29 +2395,24 @@ async function checkBattle() {
             battle.player2.name;
 
 
-        setTimeout(
-            () => {
+        setTimeout(() => {
 
-                startBattleGame(
-                    battle
-                );
+            startBattleGame(
+                battle
+            );
 
-            },
-            700
-        );
-
-
-    } catch (error) {
-
-        console.log(error);
+        }, 700);
 
     }
+    catch (error) {
 
+        console.log(error);
+    }
 }
 
 
 /* =====================================================
-   START BATTLE GAME
+   BATTLE GAME
 ===================================================== */
 
 function startBattleGame(
@@ -2677,18 +2423,14 @@ function startBattleGame(
         .getElementById(
             "waiting-room"
         )
-        .classList.add(
-            "hidden"
-        );
+        .classList.add("hidden");
 
 
     document
         .getElementById(
             "battle-arena"
         )
-        .classList.remove(
-            "hidden"
-        );
+        .classList.remove("hidden");
 
 
     battleWordLength =
@@ -2722,7 +2464,6 @@ function startBattleGame(
 
         battlePlayer =
             "player2";
-
     }
 
 
@@ -2756,7 +2497,6 @@ function startBattleGame(
             )
             .textContent =
             opponent.name;
-
     }
 
 
@@ -2774,7 +2514,6 @@ function startBattleGame(
 
 
     startBattlePolling();
-
 }
 
 
@@ -2789,7 +2528,6 @@ function createBattleBoard() {
             "battle-board"
         );
 
-
     board.innerHTML = "";
 
 
@@ -2800,10 +2538,7 @@ function createBattleBoard() {
     ) {
 
         const row =
-            document.createElement(
-                "div"
-            );
-
+            document.createElement("div");
 
         row.className =
             "battle-row";
@@ -2816,32 +2551,20 @@ function createBattleBoard() {
         ) {
 
             const tile =
-                document.createElement(
-                    "div"
-                );
-
+                document.createElement("div");
 
             tile.className =
                 "battle-tile";
 
-
             tile.id =
                 `battle-tile-${r}-${c}`;
 
-
-            row.appendChild(
-                tile
-            );
-
+            row.appendChild(tile);
         }
 
 
-        board.appendChild(
-            row
-        );
-
+        board.appendChild(row);
     }
-
 }
 
 
@@ -2855,7 +2578,6 @@ function createBattleKeyboard() {
         document.getElementById(
             "battle-keyboard"
         );
-
 
     keyboard.innerHTML = "";
 
@@ -2882,58 +2604,38 @@ function createBattleKeyboard() {
     ];
 
 
-    rows.forEach(
-        letters => {
+    rows.forEach(letters => {
 
-            const row =
-                document.createElement(
-                    "div"
-                );
+        const row =
+            document.createElement("div");
 
-
-            row.className =
-                "battle-key-row";
+        row.className =
+            "battle-key-row";
 
 
-            letters.forEach(
-                letter => {
+        letters.forEach(letter => {
 
-                    const button =
-                        document.createElement(
-                            "button"
-                        );
+            const button =
+                document.createElement("button");
 
+            button.className =
+                "battle-key";
 
-                    button.className =
-                        "battle-key";
+            button.textContent =
+                letter;
 
-
-                    button.textContent =
-                        letter;
-
-
-                    button.onclick =
-                        () =>
-                            handleBattleKey(
-                                letter
-                            );
-
-
-                    row.appendChild(
-                        button
+            button.onclick =
+                () =>
+                    handleBattleKey(
+                        letter
                     );
 
-                }
-            );
+            row.appendChild(button);
+        });
 
 
-            keyboard.appendChild(
-                row
-            );
-
-        }
-    );
-
+        keyboard.appendChild(row);
+    });
 }
 
 
@@ -2941,24 +2643,17 @@ function createBattleKeyboard() {
    BATTLE KEY
 ===================================================== */
 
-function handleBattleKey(
-    key
-) {
+function handleBattleKey(key) {
 
-    if (
-        key === "ENTER"
-    ) {
+    if (key === "ENTER") {
 
         submitBattleGuess();
 
         return;
-
     }
 
 
-    if (
-        key === "⌫"
-    ) {
+    if (key === "⌫") {
 
         battleCurrentGuess =
             battleCurrentGuess.slice(
@@ -2966,27 +2661,22 @@ function handleBattleKey(
                 -1
             );
 
-
         updateBattleBoard();
 
         return;
-
     }
 
 
     if (
+        /^[A-Z]$/.test(key) &&
         battleCurrentGuess.length <
         battleWordLength
     ) {
 
-        battleCurrentGuess +=
-            key;
-
+        battleCurrentGuess += key;
 
         updateBattleBoard();
-
     }
-
 }
 
 
@@ -3007,22 +2697,18 @@ function updateBattleBoard() {
                 `battle-tile-${battleCurrentRow}-${c}`
             );
 
-
         if (tile) {
 
             tile.textContent =
                 battleCurrentGuess[c] ||
                 "";
-
         }
-
     }
-
 }
 
 
 /* =====================================================
-   BATTLE GUESS
+   BATTLE SUBMIT
 ===================================================== */
 
 async function submitBattleGuess() {
@@ -3033,7 +2719,6 @@ async function submitBattleGuess() {
     ) {
 
         return;
-
     }
 
 
@@ -3046,7 +2731,6 @@ async function submitBattleGuess() {
                 window.currentRoom +
                 "/guess",
                 {
-
                     method: "POST",
 
                     headers: {
@@ -3063,7 +2747,6 @@ async function submitBattleGuess() {
                             battleCurrentGuess
 
                     })
-
                 }
             );
 
@@ -3083,7 +2766,6 @@ async function submitBattleGuess() {
                 "Not a word! ❌";
 
             return;
-
         }
 
 
@@ -3098,18 +2780,7 @@ async function submitBattleGuess() {
                 "you-guesses"
             )
             .textContent =
-            data.guesses +
-            " guesses";
-
-
-        const progress =
-            Math.min(
-                (
-                    data.guesses /
-                    battleMaxAttempts
-                ) * 100,
-                100
-            );
+            `${data.guesses} guesses`;
 
 
         document
@@ -3117,27 +2788,24 @@ async function submitBattleGuess() {
                 "you-progress"
             )
             .style.width =
-            progress + "%";
+            Math.min(
+                (
+                    data.guesses /
+                    battleMaxAttempts
+                ) * 100,
+                100
+            ) + "%";
 
 
-        if (
-            data.correct
-        ) {
+        if (data.correct) {
 
-            setTimeout(
-                () => {
+            setTimeout(() => {
 
-                    finishBattle(
-                        true
-                    );
+                finishBattle(true);
 
-                },
-                1000
-            );
-
+            }, 1000);
 
             return;
-
         }
 
 
@@ -3151,20 +2819,15 @@ async function submitBattleGuess() {
             battleMaxAttempts
         ) {
 
-            setTimeout(
-                () => {
+            setTimeout(() => {
 
-                    finishBattle(
-                        false
-                    );
+                finishBattle(false);
 
-                },
-                800
-            );
-
+            }, 800);
         }
 
-    } catch (error) {
+    }
+    catch (error) {
 
         console.error(error);
 
@@ -3174,9 +2837,7 @@ async function submitBattleGuess() {
             )
             .textContent =
             "Connection error!";
-
     }
-
 }
 
 
@@ -3189,67 +2850,33 @@ function applyBattleResult(
     result
 ) {
 
-    result.forEach(
-        (state, i) => {
+    result.forEach((state, i) => {
 
-            const tile =
-                document.getElementById(
-                    `battle-tile-${row}-${i}`
-                );
-
-
-            if (!tile) return;
-
-
-            setTimeout(
-                () => {
-
-                    tile.classList.add(
-                        "flip"
-                    );
-
-
-                    setTimeout(
-                        () => {
-
-                            if (
-                                state ===
-                                "green"
-                            ) {
-
-                                tile.style.background =
-                                    "#4caf50";
-
-                            }
-
-                            else if (
-                                state ===
-                                "yellow"
-                            ) {
-
-                                tile.style.background =
-                                    "#d6a72c";
-
-                            }
-
-                            else {
-
-                                tile.style.background =
-                                    "#444";
-
-                            }
-
-                        },
-                        250
-                    );
-
-                },
-                i * 130
+        const tile =
+            document.getElementById(
+                `battle-tile-${row}-${i}`
             );
 
-        }
-    );
+        if (!tile) return;
 
+
+        setTimeout(() => {
+
+            tile.classList.add("flip");
+
+
+            setTimeout(() => {
+
+                setTileColor(
+                    tile,
+                    state
+                );
+
+            }, 250);
+
+        }, i * 130);
+
+    });
 }
 
 
@@ -3269,15 +2896,12 @@ function startBattlePolling() {
             updateBattleStatus,
             1000
         );
-
 }
 
 
 async function updateBattleStatus() {
 
-    if (
-        !window.currentRoom
-    ) {
+    if (!window.currentRoom) {
         return;
     }
 
@@ -3296,16 +2920,13 @@ async function updateBattleStatus() {
             await response.json();
 
 
-        if (
-            !battle.player2
-        ) {
+        if (!battle.player2) {
             return;
         }
 
 
         const opponent =
-            battlePlayer ===
-            "player1"
+            battlePlayer === "player1"
                 ? battle.player2
                 : battle.player1;
 
@@ -3315,18 +2936,7 @@ async function updateBattleStatus() {
                 "opponent-guesses"
             )
             .textContent =
-            opponent.guesses +
-            " guesses";
-
-
-        const progress =
-            Math.min(
-                (
-                    opponent.guesses /
-                    battleMaxAttempts
-                ) * 100,
-                100
-            );
+            `${opponent.guesses} guesses`;
 
 
         document
@@ -3334,7 +2944,13 @@ async function updateBattleStatus() {
                 "opponent-progress"
             )
             .style.width =
-            progress + "%";
+            Math.min(
+                (
+                    opponent.guesses /
+                    battleMaxAttempts
+                ) * 100,
+                100
+            ) + "%";
 
 
         if (
@@ -3347,20 +2963,15 @@ async function updateBattleStatus() {
                 battlePlayer
             ) {
 
-                finishBattle(
-                    false
-                );
-
+                finishBattle(false);
             }
-
         }
 
-    } catch (error) {
+    }
+    catch (error) {
 
         console.log(error);
-
     }
-
 }
 
 
@@ -3368,9 +2979,7 @@ async function updateBattleStatus() {
    BATTLE FINISH
 ===================================================== */
 
-function finishBattle(
-    won
-) {
+function finishBattle(won) {
 
     clearInterval(
         battlePolling
@@ -3395,7 +3004,7 @@ function finishBattle(
             "🏆 YOU WIN!";
 
         message.textContent =
-            "🔥 Amazing! You cracked it first!";
+            "You cracked it first! 🔥";
 
     } else {
 
@@ -3403,19 +3012,14 @@ function finishBattle(
             "💀 YOU LOST!";
 
         message.textContent =
-            "Your opponent got the word first.";
+            "Your opponent got it first.";
 
     }
 
 
     disableBattleKeyboard();
-
 }
 
-
-/* =====================================================
-   DISABLE BATTLE
-===================================================== */
 
 function disableBattleKeyboard() {
 
@@ -3423,15 +3027,27 @@ function disableBattleKeyboard() {
         .querySelectorAll(
             ".battle-key"
         )
-        .forEach(
-            button => {
+        .forEach(button => {
 
-                button.disabled =
-                    true;
+            button.disabled = true;
 
-            }
-        );
+        });
+}
 
+
+function leaveBattle() {
+
+    clearInterval(
+        battlePolling
+    );
+
+    document
+        .getElementById(
+            "battle-arena"
+        )
+        .classList.add("hidden");
+
+    showHome();
 }
 
 
@@ -3450,9 +3066,7 @@ function copyRoomCode() {
 
 
     navigator.clipboard
-        .writeText(
-            code
-        );
+        .writeText(code);
 
 
     document
@@ -3461,58 +3075,6 @@ function copyRoomCode() {
         )
         .textContent =
         "Code copied! 📋";
-
-}
-
-
-/* =====================================================
-   LEAVE BATTLE
-===================================================== */
-
-function leaveBattle() {
-
-    clearInterval(
-        battlePolling
-    );
-
-
-    document
-        .getElementById(
-            "battle-arena"
-        )
-        .classList.add(
-            "hidden"
-        );
-
-
-    document
-        .getElementById(
-            "home"
-        )
-        .classList.remove(
-            "hidden"
-        );
-
-}
-
-
-/* =====================================================
-   HOME
-===================================================== */
-
-function goHome() {
-
-    clearInterval(
-        battlePolling
-    );
-
-    clearInterval(
-        waitingInterval
-    );
-
-
-    showHome();
-
 }
 
 
@@ -3524,6 +3086,14 @@ document.addEventListener(
     "keydown",
     event => {
 
+        const key =
+            event.key.toUpperCase();
+
+
+        /*
+         * SOLO
+         */
+
         const game =
             document.getElementById(
                 "game-area"
@@ -3531,45 +3101,111 @@ document.addEventListener(
 
 
         if (
-            !game ||
-            game.classList.contains(
+            game &&
+            !game.classList.contains(
                 "hidden"
             )
         ) {
 
-            return;
+            if (
+                key === "BACKSPACE"
+            ) {
 
+                handleKey("⌫");
+
+            } else if (
+                key === "ENTER"
+            ) {
+
+                handleKey("ENTER");
+
+            } else if (
+                /^[A-Z]$/.test(key)
+            ) {
+
+                handleKey(key);
+            }
+
+            return;
         }
 
 
-        const key =
-            event.key.toUpperCase();
+        /*
+         * DAILY
+         */
+
+        const daily =
+            document.getElementById(
+                "daily-page"
+            );
 
 
         if (
-            key ===
-            "BACKSPACE"
+            daily &&
+            !daily.classList.contains(
+                "hidden"
+            ) &&
+            !dailyFinished
         ) {
 
-            handleKey("⌫");
+            if (
+                key === "BACKSPACE"
+            ) {
 
+                handleDailyKey("⌫");
+
+            } else if (
+                key === "ENTER"
+            ) {
+
+                handleDailyKey("ENTER");
+
+            } else if (
+                /^[A-Z]$/.test(key)
+            ) {
+
+                handleDailyKey(key);
+            }
+
+            return;
         }
 
-        else if (
-            key ===
-            "ENTER"
+
+        /*
+         * BATTLE
+         */
+
+        const battle =
+            document.getElementById(
+                "battle-arena"
+            );
+
+
+        if (
+            battle &&
+            !battle.classList.contains(
+                "hidden"
+            )
         ) {
 
-            handleKey("ENTER");
+            if (
+                key === "BACKSPACE"
+            ) {
 
-        }
+                handleBattleKey("⌫");
 
-        else if (
-            /^[A-Z]$/.test(key)
-        ) {
+            } else if (
+                key === "ENTER"
+            ) {
 
-            handleKey(key);
+                handleBattleKey("ENTER");
 
+            } else if (
+                /^[A-Z]$/.test(key)
+            ) {
+
+                handleBattleKey(key);
+            }
         }
 
     }
