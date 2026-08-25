@@ -9,6 +9,8 @@ const API =
 ===================================================== */
 
 let wordLength = 5;
+let hintsUsed = 0;
+const MAX_HINTS = 3;
 let maxAttempts = 6;
 
 let currentRow = 0;
@@ -175,6 +177,22 @@ async function startGame(length) {
 
     currentRow = 0;
     currentGuess = "";
+    hintUsed = false;
+const hintMessage =
+    document.getElementById("hint-message");
+
+if (hintMessage) {
+    hintMessage.textContent = "";
+    hintMessage.classList.remove("hint-show");
+}
+
+const hintButton =
+    document.getElementById("hint-button");
+
+if (hintButton) {
+    hintButton.disabled = false;
+    hintButton.textContent = "💡 HINT";
+}
 
     keyboardStates = {};
 
@@ -1383,76 +1401,28 @@ async function submitDailyGuess() {
 
     try {
 
-        /*
-         * Validate guess using server.
-         */
+    /* FAST LOCAL VALIDATION */
 
-        const start =
-            await fetch(
-                API + "/solo/start",
-                {
-                    method: "POST",
+const response =
+    await fetch(
+        API + "/words/5"
+    );
 
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
+const validWords =
+    await response.json();
 
-                    body: JSON.stringify({
-                        wordLength: 5
-                    })
-                }
-            );
+if (
+    !validWords.includes(guess)
+) {
 
+    shakeDailyBoard();
 
-        if (!start.ok) {
+    showDailyMessage(
+        "Not a word! ❌"
+    );
 
-            throw new Error(
-                "Dictionary unavailable"
-            );
-        }
-
-
-        const game =
-            await start.json();
-
-
-        const validationResponse =
-            await fetch(
-                API +
-                `/solo/${game.gameId}/guess`,
-                {
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body: JSON.stringify({
-                        guess
-                    })
-                }
-            );
-
-
-        const validation =
-            await validationResponse.json();
-
-
-        if (
-            !validationResponse.ok
-        ) {
-
-            shakeDailyBoard();
-
-            showDailyMessage(
-                validation.error ||
-                "Not a word! ❌"
-            );
-
-            return;
-        }
+    return;
+}
 
 
         /*
@@ -3210,3 +3180,105 @@ document.addEventListener(
 
     }
 );
+/* =====================================================
+   HINT SYSTEM
+===================================================== */
+
+
+async function useHint() {
+
+    if (hintsUsed >= MAX_HINTS) {
+        showMessage("No hints left! 💡");
+        return;
+    }
+
+    if (!soloGameId) {
+        return;
+    }
+
+    try {
+
+        const response =
+            await fetch(
+                API +
+                "/hint/" +
+                soloGameId
+            );
+
+        const hint =
+            await response.json();
+
+        if (!response.ok) {
+            showMessage(
+                hint.error ||
+                "Hint unavailable!"
+            );
+            return;
+        }
+
+        const message =
+            document.getElementById(
+                "hint-message"
+            );
+
+        if (message) {
+
+            message.textContent =
+                "💡 " + hint.clue;
+
+            message.classList.add(
+                "hint-show"
+            );
+        }
+
+        // One attempt is consumed
+        hintsUsed++;
+
+        // Sync attempts with server
+if (typeof hint.guesses === "number") {
+
+    const attempts =
+        document.getElementById(
+            "attempts"
+        );
+
+    if (attempts) {
+
+        attempts.textContent =
+            `${hint.guesses} / ${hint.maxAttempts}`;
+    }
+}
+
+        const button =
+            document.getElementById(
+                "hint-button"
+            );
+
+        if (button) {
+
+            const remaining =
+                MAX_HINTS - hintsUsed;
+
+            if (remaining > 0) {
+
+                button.textContent =
+                    `💡 HINT ×${remaining}`;
+
+            } else {
+
+                button.textContent =
+                    "💡 HINTS USED";
+
+                button.disabled = true;
+            }
+        }
+
+    } catch (error) {
+
+        console.error(error);
+
+        showMessage(
+            "Hint unavailable!"
+        );
+    }
+}

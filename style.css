@@ -1392,3 +1392,27 @@ header p {
     color: #999 !important;
     opacity: .65;
 }
+/* DAILY TILE FLIP */
+
+.daily-tile {
+    transform-style: preserve-3d;
+    transition: transform 0.15s ease;
+}
+
+.daily-tile.flip {
+    animation: dailyFlip 0.6s ease forwards;
+}
+
+@keyframes dailyFlip {
+    0% {
+        transform: rotateX(0deg);
+    }
+
+    50% {
+        transform: rotateX(90deg);
+    }
+
+    100% {
+        transform: rotateX(0deg);
+    }
+}
