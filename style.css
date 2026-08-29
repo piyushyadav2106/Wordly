@@ -1333,7 +1333,8 @@ header p {
     position: fixed;
     inset: 0;
 
-    display: flex;
+     z-index: 99999;
+
     align-items: center;
     justify-content: center;
 
@@ -1354,10 +1355,6 @@ header p {
     z-index: 9999;
 }
 
-.admin-modal.show {
-    opacity: 1;
-    visibility: visible;
-}
 
 
 /* Modal card */
@@ -1866,4 +1863,12 @@ document.addEventListener(
     .admin-modal-box p {
         font-size: 12.5px;
     }
+}
+/* Hide admin modal immediately while page loads */
+#admin-modal {
+    display: none;
+}
+
+#admin-modal.show {
+    display: flex;
 }

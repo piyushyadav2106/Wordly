@@ -6,12 +6,12 @@
     id="about-admin-btn"
     type="button"
     aria-label="About Admin"
-    onclick="document.getElementById('admin-modal').classList.add('show')"
+    onclick="document.getElementById('admin-modal').hidden=false; document.getElementById('admin-modal').classList.add('show')"
 >ⓘ</button>
 
 
 <!-- ABOUT ADMIN MODAL -->
-<div id="admin-modal" class="admin-modal">
+<div id="admin-modal" class="admin-modal" hidden>
 
     <div class="admin-modal-box">
 
