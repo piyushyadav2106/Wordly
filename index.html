@@ -1,7 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
 
+<!-- ABOUT ADMIN BUTTON -->
+<button
+    id="about-admin-btn"
+    type="button"
+    aria-label="About Admin"
+    onclick="document.getElementById('admin-modal').classList.add('show')"
+>ⓘ</button>
+
+
+<!-- ABOUT ADMIN MODAL -->
+<div id="admin-modal" class="admin-modal">
+
+    <div class="admin-modal-box">
+
+        <button
+            id="admin-modal-close"
+            type="button"
+            class="admin-modal-close"
+            aria-label="Close"
+            onclick="document.getElementById('admin-modal').classList.remove('show')"
+        >×</button>
+
+
+        <div class="admin-info-icon">ⓘ</div>
+
+        <h2>About Admin</h2>
+
+        <div class="admin-name">
+            Sonakshi
+        </div>
+
+        <div class="admin-speciality">
+            Speciality — Never Lost
+        </div>
+
+        <div class="admin-divider"></div>
+
+
+        <p>
+            I handle the server.<br>
+            She handles the final say on literally everything.
+        </p>
+
+        <p>
+            You have <strong>6 tries</strong> to guess the word,
+            but I have <strong>zero margin for error with her.</strong>
+        </p>
+
+        <p>
+            Dictionary has thousands of words,
+            but this whole site is dedicated to
+            <strong>one person.</strong>
+        </p>
+
+        <p class="admin-warning">
+            And remember:<br>
+            <strong>All complaints go to the developer.</strong><br>
+            The admin doesn't make any mistakes.
+        </p>
+
+    </div>
+
+</div>
+
 <head>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap"
+    rel="stylesheet">
 
     <meta charset="UTF-8">
 

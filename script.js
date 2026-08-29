@@ -27,7 +27,7 @@ let dailyWord = "";
 let dailyRow = 0;
 let dailyGuess = "";
 let dailyFinished = false;
-
+let dailyShareRows = [];
 
 /* BATTLE */
 
@@ -1049,6 +1049,8 @@ async function startDaily() {
 
     dailyFinished = false;
 
+    dailyShareRows = [];
+    
     keyboardStates = {};
 
 
@@ -1434,7 +1436,22 @@ if (
                 dailyWord,
                 guess
             );
+console.log("DAILY RESULT:", result);
 
+            const shareLine = result.map(state => {
+
+    if (state === "green") {
+        return "🟩";
+    }
+
+    if (state === "yellow") {
+        return "🟨";
+    }
+
+    return "⬛";
+}).join("");
+
+dailyShareRows.push(shareLine);
 
         applyDailyResult(
             dailyRow,
@@ -1830,78 +1847,28 @@ function finishDaily(
 
 function buildDailyShare() {
 
-    const rows = [];
+    const attempts =
+        dailyShareRows.length;
 
+    const result =
+        `${attempts}/6\n\n` +
+        dailyShareRows.join("\n");
 
-    for (
-        let r = 0;
-        r <= dailyRow &&
-        r < 6;
-        r++
-    ) {
-
-        let line = "";
-
-
-        for (
-            let c = 0;
-            c < 5;
-            c++
-        ) {
-
-            const tile =
-                document.getElementById(
-                    `daily-tile-${r}-${c}`
-                );
-
-
-            if (!tile) continue;
-
-
-            const bg =
-                tile.style.background;
-
-
-            if (
-                bg.includes("rgb(76, 175, 80)")
-            ) {
-
-                line += "🟩";
-
-            } else if (
-                bg.includes(
-                    "rgb(214, 167, 44)"
-                )
-            ) {
-
-                line += "🟨";
-
-            } else {
-
-                line += "⬛";
-            }
-        }
-
-
-        if (line.length === 5) {
-
-            rows.push(line);
-        }
-    }
-
-
-    document
-        .getElementById(
+    const shareBox =
+        document.getElementById(
             "daily-share"
-        )
-        .textContent =
-        rows.join("\n");
+        );
+
+    if (shareBox) {
+        shareBox.textContent =
+            result;
+    }
 }
 
 
-function copyDailyResult() {
+async function copyDailyResult() {
 
-    const share =
+    const shareText =
         `Wordly Daily #${getDailyNumber()}\n\n` +
         document
             .getElementById(
@@ -1909,19 +1876,65 @@ function copyDailyResult() {
             )
             .textContent;
 
+    try {
 
-    navigator.clipboard
-        .writeText(share);
+        if (
+            navigator.share
+        ) {
 
+            await navigator.share({
+                title:
+                    `Wordly Daily #${getDailyNumber()}`,
+                text:
+                    shareText
+            });
 
-    document
-        .getElementById(
-            "daily-next"
-        )
-        .textContent =
-        "Copied! 📋";
+        } else {
+
+            await navigator.clipboard
+                .writeText(
+                    shareText
+                );
+
+            document
+                .getElementById(
+                    "daily-next"
+                )
+                .textContent =
+                "Copied! 📋";
+        }
+
+    } catch (error) {
+
+        if (
+            error.name !==
+            "AbortError"
+        ) {
+
+            try {
+
+                await navigator.clipboard
+                    .writeText(
+                        shareText
+                    );
+
+                document
+                    .getElementById(
+                        "daily-next"
+                    )
+                    .textContent =
+                    "Copied! 📋";
+
+            } catch (e) {
+
+                console.error(
+                    "Share failed:",
+                    e
+                );
+            }
+        }
+    }
 }
-
 
 /* =====================================================
    DAILY NUMBER

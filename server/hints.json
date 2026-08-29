@@ -1,50 +1,109 @@
 {
   "GHOST": {
-    "clue": "You might encounter this in a haunted house.",
+    "clues": [
+      "I appear where the living fear to stay. Who am I?",
+      "You may hear whispers of me in a haunted house.",
+      "Some say I am the spirit of someone who is no longer alive."
+    ],
     "letter": "G"
   },
+
   "MOUSE": {
-    "clue": "A small animal often associated with cheese.",
+    "clues": [
+      "I'm tiny, quick, and I prefer not to be noticed.",
+      "You might find me hiding where food is stored.",
+      "Cheese is the classic food people associate with me."
+    ],
     "letter": "M"
   },
+
   "HOUSE": {
-    "clue": "A place where people live.",
+    "clues": [
+      "I have walls, but I'm not a prison.",
+      "You return to me when the day is done.",
+      "I am a place where people live and make memories."
+    ],
     "letter": "H"
   },
+
   "WATER": {
-    "clue": "You drink it every day to stay hydrated.",
+    "clues": [
+      "I have no colour of my own, yet I can reflect the sky.",
+      "You need me to stay alive.",
+      "You drink me when you're thirsty."
+    ],
     "letter": "W"
   },
+
   "PHONE": {
-    "clue": "You probably use this every day to call or message.",
+    "clues": [
+      "I can connect two people who are miles apart.",
+      "I fit in your pocket but can open a world of information.",
+      "You use me to call, message, and browse."
+    ],
     "letter": "P"
   },
+
   "TABLE": {
-    "clue": "You might eat your dinner on this.",
+    "clues": [
+      "I have legs but never take a step.",
+      "Things are often placed on top of me.",
+      "You might gather around me for dinner."
+    ],
     "letter": "T"
   },
+
   "CHAIR": {
-    "clue": "You sit on this.",
+    "clues": [
+      "I have legs but I never walk.",
+      "I wait quietly for someone to rest.",
+      "You sit on me when your feet need a break."
+    ],
     "letter": "C"
   },
+
   "MONEY": {
-    "clue": "You use this to buy things.",
+    "clues": [
+      "People chase me, save me, and sometimes argue over me.",
+      "I can disappear quickly when you go shopping.",
+      "You use me to pay for things."
+    ],
     "letter": "M"
   },
+
   "BREAD": {
-    "clue": "A common food made from flour.",
+    "clues": [
+      "I can be soft inside and golden outside.",
+      "I often arrive at the table before the main meal.",
+      "I'm made mainly from flour and can be sliced for eating."
+    ],
     "letter": "B"
   },
+
   "TRAIN": {
-    "clue": "A vehicle that travels on railway tracks.",
+    "clues": [
+      "I carry many people but never drive on a road.",
+      "I follow a path made of two parallel lines.",
+      "I travel on railway tracks."
+    ],
     "letter": "T"
   },
+
   "APPLE": {
-    "clue": "A common fruit that can be red or green.",
+    "clues": [
+      "I grow on trees and can hide a tiny world of seeds inside.",
+      "Some of my colours include red and green.",
+      "I'm a fruit often associated with keeping the doctor away."
+    ],
     "letter": "A"
   },
+
   "LIGHT": {
-    "clue": "It helps you see when it is dark.",
+    "clues": [
+      "I chase away darkness without making a sound.",
+      "You notice my absence when everything becomes hard to see.",
+      "I help you see when it is dark."
+    ],
     "letter": "L"
   }
 }

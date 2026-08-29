@@ -396,36 +396,40 @@ app.post(
 
 function getDailyWord() {
 
-    const list =
-        getWordList(5);
+    const list = getWordList(5);
 
+    if (!list || list.length === 0) {
+        return null;
+    }
 
-    const now =
-        new Date();
+    const now = new Date();
 
+    const dateKey =
+        `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}-${String(now.getUTCDate()).padStart(2, "0")}`;
 
-    const year =
-        now.getUTCFullYear();
+    // Strong deterministic hash
+    let hash = 2166136261;
 
-    const month =
-        now.getUTCMonth();
+    for (const char of dateKey) {
 
-    const day =
-        now.getUTCDate();
+        hash ^= char.charCodeAt(0);
 
+        hash +=
+            (hash << 1) +
+            (hash << 4) +
+            (hash << 7) +
+            (hash << 8) +
+            (hash << 24);
+    }
 
-    const seed =
-        year * 10000 +
-        (month + 1) * 100 +
-        day;
+    hash =
+        Math.abs(hash >>> 0);
 
+    const index =
+        hash % list.length;
 
-    return list[
-        seed % list.length
-    ];
-
+    return list[index];
 }
-
 
 app.get(
     "/daily",
@@ -873,6 +877,7 @@ app.get("/words/:length", (req, res) => {
         words[length] || []
     );
 });
+
 app.get("/hint/:gameId", (req, res) => {
 
     const game =
@@ -913,47 +918,75 @@ app.get("/hint/:gameId", (req, res) => {
 
     let clue;
 
-    // Stronger hint with each use
-    if (game.hintsUsed === 0) {
+/*
+ * 3 HINT SYSTEM
+ *
+ * Hint 1 → First letter
+ * Hint 2 → One vowel
+ * Hint 3 → Last letter
+ */
+
+if (game.hintsUsed === 0) {
+
+    clue =
+        `The word starts with "${word[0]}".`;
+
+} else if (game.hintsUsed === 1) {
+
+    const vowels =
+        [...word].filter(letter =>
+            "AEIOU".includes(letter)
+        );
+
+    if (vowels.length > 0) {
+
+        // Pick one vowel
+        // deterministically so it stays consistent
+        const vowel =
+            vowels[
+                word.length % vowels.length
+            ];
 
         clue =
-            `It starts with "${word[0]}" and ends with "${word[word.length - 1]}".`;
-
-    } else if (game.hintsUsed === 1) {
-
-        const vowels =
-            [...word].filter(letter =>
-                "AEIOU".includes(letter)
-            ).length;
-
-        clue =
-            `It has ${word.length} letters and ${vowels} vowel${vowels === 1 ? "" : "s"}.`;
+            `One vowel in the word is "${vowel}".`;
 
     } else {
 
-        const middleIndex =
-            Math.floor(word.length / 2);
-
         clue =
-            `The letter "${word[middleIndex]}" appears near the middle of the word.`;
-
+            `This word contains no vowels.`;
     }
 
+} else {
+
+    clue =
+        `The word ends with "${word[word.length - 1]}".`;
+}
+
+    // Record hint
     game.hintsUsed++;
 
     // Consume one attempt
     game.guesses++;
 
     res.json({
+
         clue,
-        hintsUsed: game.hintsUsed,
-        hintsRemaining: 3 - game.hintsUsed,
-        guesses: game.guesses,
-        maxAttempts: game.maxAttempts
+
+        hintsUsed:
+            game.hintsUsed,
+
+        hintsRemaining:
+            3 - game.hintsUsed,
+
+        guesses:
+            game.guesses,
+
+        maxAttempts:
+            game.maxAttempts
+
     });
 
 });
-
 
 app.listen(
     PORT,
